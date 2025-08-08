@@ -2,6 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 '''"simple" integration routine for Henon-Heiles problem.
+this version, which I tried to make "functional" takes up an
+immense amount of memory. I need to modify it, so I'll copy it
+to a different file and work there. --ato 2025-08-08 9:48
 '''
 
 # I guess I should make the following part of a class to make it more tidy, but postponing it. --ato 2025-08-07 15:54
