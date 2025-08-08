@@ -1,6 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+'''"simple" integration routine for Henon-Heiles problem.
+'''
+
+# I guess I should make the following part of a class to make it more tidy, but postponing it. --ato 2025-08-07 15:54
 cb2 = np.cbrt(2.0)
 w0 = -cb2/(2-cb2)
 w1 = 1/(2-cb2)
@@ -9,8 +13,6 @@ TJc2 = TJc3 = (w0+w1)/2
 TJd1 = TJd3 = w1
 TJd2 = w0
 
-#from dankowicz_eqs import dqdt, dpdt
-from dankowicz_eqs_simp import dqdt, dpdt
 
 def drift(q, p, dt):
     '''change the positions, without changing the momenta'''
@@ -22,8 +24,8 @@ def drift(q, p, dt):
 def kick(q, p, dt):
     '''change the momenta, without changing the positions'''
     qn = q.copy()
-    pn = np.asarray([ p[0] + dt*(-q[0]-2*q[0]*q[1]),
-                      p[1] + dt*(-2*q[1] - q[0]*q[0]) ])
+    pn = np.asarray([ p[0] + dt*(-q[0] - 2*q[0]*q[1]),
+                      p[1] + dt*(-q[1] - (q[0]*q[0] - q[1]*q[1])) ])
     return qn, pn
 
 def DKD_leapfrog(q, p, dt):
@@ -43,34 +45,34 @@ def triple_jump(q, p, dt):
     return q, p
 
 def init_cond_dankowicz(H):
-    '''we plot the intersection with q2=0 plane'''
-    q2 = 0.0
+    '''we plot the intersection with x=0 plane'''
+    x = 0.0
 
     '''q1 and p1 lie in a circle of radius sqrt(2H)
        here, we choose them somewhat randomly.'''
-    q1 = 0.4*np.sqrt(2*H)
-    p1 = -0.15*np.sqrt(2*H)
+    y = 0.3
+    vy = -0.14
 
-    p2 = np.sqrt(2*H - (p1*p1 + q1*q1 + 2*q2*q2 + 2*q1*q1*q2))
+    vx = np.sqrt(2*H - (x*x + y*y -2*x*x*y + 2/3*y*y*y - vy*vy))
 
     print("initial conditions:")
-    print(np.asarray([q1, q2]), np.asarray([p1, p2]))
+    print(np.asarray([x, y]), np.asarray([vx, vy]))
 
-    return np.asarray([q1, q2]), np.asarray([p1, p2])
+    return np.asarray([x, y]), np.asarray([vx, vy])
 
 def calc_E(q, p):
-    return (0.5*(p[0]*p[0] + q[0]*q[0])+
-            0.5*(p[1]*p[1] + 2*q[1]*q[1])+
-            q[0]*q[0]*q[1])
+    return (0.5*(q[0]*q[0] + q[1]*q[1]) +
+            (q[0]*q[0]*q[1] - q[1]*q[1]*q[1]/3) +
+            (p[0]*p[0]+p[1]*p[1]))
 
 def main():
     tend = 1240.0
     t = 0.0
     dt = 0.01
 
-    H = 0.32
+    H0 = 0.083333
     
-    q_prev, p_prev = init_cond_dankowicz(H)
+    q_prev, p_prev = init_cond_dankowicz(H0)
 
     xplt = []
     yplt = []
@@ -78,19 +80,19 @@ def main():
         q, p = triple_jump(q_prev, p_prev, dt)
         #print("%8.3e %8.3e %8.3e %8.3e" % (q[0], p[0], q[1], p[1]))
         #print("     %8.3e %8.3e %8.3e" % (q_prev[1], q[1], q_prev[1]*q[1]))
-        if q_prev[1]*q[1] <= 0 and p[1]>0: # q2 passed through zero
-            xplt.append((q_prev[0]+q[0])/2) # we can be more fancy here and make linear interpolation, let's postpone though
-            yplt.append((p_prev[0]+p[0])/2)
+        if q_prev[0]*q[0] <= 0 and p[0]>0: # x passed through zero
+            xplt.append((q_prev[1]+q[1])/2) # we can be more fancy here and make linear interpolation, let's postpone though
+            yplt.append((p_prev[1]+p[1])/2)
             #print("********************", xplt[-1], yplt[-1])
         q_prev = q.copy()
         p_prev = p.copy()
         t += dt
-        print("%.4e" % (calc_E(q, p)-H))
+        print("%.4e" % (calc_E(q, p)-H0))
     
     # Example Matplotlib plot
     plt.figure(figsize=(8, 6))
     plt.plot(xplt, yplt, ".")
-    plt.title('Dankowicz figure on p35')
+    plt.title('Henon and Heiles  figure 3')
     plt.xlabel('q1')
     plt.ylabel('p1')
     plt.grid(False)

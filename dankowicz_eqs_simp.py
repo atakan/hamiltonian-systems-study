@@ -8,7 +8,7 @@ def dqdt(q, p, t):
 
 def dpdt(q, p, t):
     return np.asarray([
-        -2*q[0]*q[1] - q[0],
-        -q[0]*q[0] - 2*q[1],
+        - q[0],
+        - 2*q[1],
     ])
 
